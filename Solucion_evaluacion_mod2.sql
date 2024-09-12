@@ -184,7 +184,7 @@ SELECT DISTINCT f.title
 FROM film  AS f
 JOIN inventory AS i ON f.film_id = i.film_id				-- Unimos con inventory y film, ya que rental tiene inventory_id
 JOIN rental AS r ON r.inventory_id = i.inventory_id 		-- Unimos con rental para poder realizar la subconsulta
-WHERE r.rental_id IN (       									-- Hacemos subconsulta sobre cantidad de rentas mayores a 5 dias de duracion
+WHERE r.rental_id IN (       								-- Hacemos subconsulta sobre cantidad de rentas que duraron más de 5 días
 		SELECT rental_id 
         FROM rental 
         WHERE (r.return_date - r.rental_date) > 5);
@@ -197,10 +197,10 @@ Utiliza una subconsulta para encontrar los actores que han actuado en películas
 de la lista de actores. */
 
 
-SELECT a.first_name, a.last_name
+SELECT a.first_name, a.last_name											-- Obtenemos nombre de actores
 FROM actor AS a
 WHERE (a.first_name, a.last_name)NOT IN (  
-			SELECT 
+			SELECT 															-- Hacemos subconsulta de acuerdo a lo solicitado en el ejercicios es decir primero identificar actores que hann actudado en peliculas de Horror y despues excluirlos 
 			a.first_name, a.last_name
 			FROM actor AS a
 			JOIN film_actor AS fa ON fa.actor_id = a.actor_id
@@ -210,7 +210,7 @@ WHERE (a.first_name, a.last_name)NOT IN (
 ;
             
 
-
+/* 24. BONUS: Encuentra el título de las películas que son comedias y tienen una duración mayor a 180 minutos en la tabla film. */
 
 
 
