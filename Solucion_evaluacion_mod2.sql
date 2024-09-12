@@ -141,6 +141,7 @@ INNER JOIN film AS f ON f.film_id = fc.film_id
 WHERE c.name = "Family";
 
 -- 18. Muestra el nombre y apellido de los actores que aparecen en más de 10 películas.
+
 SELECT a.first_name , a.last_name
 FROM actor AS a
 INNER JOIN film_actor AS fa ON a.actor_id = fa.actor_id
@@ -177,14 +178,17 @@ HAVING COUNT(f.film_id) >= 5;
 
 
 /* 22. Encuentra el título de todas las películas que fueron alquiladas por más de 5 días. Utiliza una subconsulta para encontrar
- los rental_ids con una duración superior a 5 días y luego selecciona las películas correspondientes. */
+ los rental_ids con una duración superior a 5 días y luego selecciona las películas correspondientes. 
+ 
+ Comentarios: Hacemos dos joins de film con inventory y rental para acceder a la información sobre el rental date. Se realiza una subconsulta
+ donde se incluyan solo aquelas rentas cuya duración fue mayor a 5 días*/
  
         
 SELECT DISTINCT f.title
 FROM film  AS f
-JOIN inventory AS i ON f.film_id = i.film_id				-- Unimos con inventory y film, ya que rental tiene inventory_id
-JOIN rental AS r ON r.inventory_id = i.inventory_id 		-- Unimos con rental para poder realizar la subconsulta
-WHERE r.rental_id IN (       								-- Hacemos subconsulta sobre cantidad de rentas que duraron más de 5 días
+JOIN inventory AS i ON f.film_id = i.film_id				
+JOIN rental AS r ON r.inventory_id = i.inventory_id 		
+WHERE r.rental_id IN (       								
 		SELECT rental_id 
         FROM rental 
         WHERE (r.return_date - r.rental_date) > 5);
@@ -194,13 +198,16 @@ WHERE r.rental_id IN (       								-- Hacemos subconsulta sobre cantidad de re
 
 /* 23. Encuentra el nombre y apellido de los actores que no han actuado en ninguna película de la categoría "Horror". 
 Utiliza una subconsulta para encontrar los actores que han actuado en películas de la categoría "Horror" y luego exclúyelos 
-de la lista de actores. */
+de la lista de actores. *
+
+Comentarios: Para obtener los nombres primero debemos hacer una subconsulta donde se incluyan los actores que han actuado 
+en peliculas de Horror y después excluir de los registros de actores totales*/
 
 
-SELECT a.first_name, a.last_name											-- Obtenemos nombre de actores
+SELECT a.first_name, a.last_name											
 FROM actor AS a
 WHERE (a.first_name, a.last_name)NOT IN (  
-			SELECT 															-- Hacemos subconsulta de acuerdo a lo solicitado en el ejercicios es decir primero identificar actores que hann actudado en peliculas de Horror y despues excluirlos 
+			SELECT 															 
 			a.first_name, a.last_name
 			FROM actor AS a
 			JOIN film_actor AS fa ON fa.actor_id = a.actor_id
@@ -210,7 +217,52 @@ WHERE (a.first_name, a.last_name)NOT IN (
 ;
             
 
-/* 24. BONUS: Encuentra el título de las películas que son comedias y tienen una duración mayor a 180 minutos en la tabla film. */
+/* 24. BONUS: Encuentra el título de las películas que son comedias y tienen una duración mayor a 180 minutos en la tabla film. 
+Comentarios: Se hace dos join con film category y category para hacer la busqueda de las peliculas que cumplan con las condiciones establecidas
+*/
+
+SELECT f.title
+FROM film AS f
+JOIN film_category AS fc ON fc.film_id = f.film_id
+JOIN category AS c ON c.category_id = fc.category_id
+WHERE c.name = 'comedy' AND f.length > 180;
+
+
+
+/* 25. BONUS: Encuentra todos los actores que han actuado juntos en al menos una película. La consulta debe mostrar el nombre y apellido de 
+los actores y el número de películas en las que han actuado juntos. 
+
+Comentarios: Para lograr recopilar los actores que han trabajado juntos, primero es necesario emplear un CTE's por la complejidad de la consulta.
+Este CTE es 'ActoresJuntos' en el que se hace una tabla provisional donde se incluyan actores y los filmes en los que han participado.
+En la querie se solicitan los nombres y apellidos de los actores (1 y 2) con el fin de observar las relaciones, y la cantidad de peliculas en las que han trabajado
+  */
+
+
+WITH Actores_juntos AS (
+		SELECT fa1.actor_id AS actor1 , fa2.actor_id AS actor2 , COUNT(DISTINCT fa1.film_id) AS cantidad_peliculas
+		FROM film_actor AS fa1
+        JOIN film_actor AS fa2 ON fa1.film_id = fa2.film_id
+        WHERE  fa1.actor_id <> fa2.actor_id 
+		GROUP BY  fa1.actor_id , fa2.actor_id )
+        
+SELECT a1.first_name AS nombre_actor1, 
+		a1.last_name AS apellido_actor1,
+        a2.first_name AS nombre_actor2, 
+        a2.last_name AS apellido_actor2, 
+        cantidad_peliculas
+FROM Actores_juntos AS aj
+JOIN actor AS a1 ON aj.actor1 = a1.actor_id
+JOIN actor AS a2 ON aj.actor2= a2.actor_id
+WHERE aj.cantidad_peliculas > 0;
+
+
+
+
+
+
+
+
+
 
 
 
